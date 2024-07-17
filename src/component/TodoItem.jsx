@@ -1,19 +1,22 @@
 /* eslint-disable */
 import { useState } from "react";
-import DeleteIcon from "../assets/icons/DeleteIcon";
-import EditIcon from "../assets/icons/EditIcon";
+import DeleteIcon from "../assets/DeleteIcon";
+import EditIcon from "../assets/EditIcon";
 
 export default function TodoItem({
-  item,
-  deleteTodo,
+  todo,
+  destroyTodo,
   toggleStatus,
-  editTitle,
+  modifyTodo,
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleEditKeyPress = (event) => {
-    if (event.key === "Enter" && event.target.value.trim() !== "") {
-      editTitle(item.id, event.target.value.trim());
+  const handleEnterKeyPress = (modifiedTodo) => {
+    if (
+      modifiedTodo.key === "Enter" &&
+      modifiedTodo.target.value.trim() !== ""
+    ) {
+      modifyTodo(todo.id, modifiedTodo.target.value.trim());
       setIsEditing(false);
     }
   };
@@ -21,35 +24,43 @@ export default function TodoItem({
   return (
     <li className="relative flex items-center justify-between px-2 py-6 border-b">
       {isEditing ? (
-        <div className="w-full flex items-center">
+        <div className="flex flex-grow w-full items-center justify-between">
           <input
             type="text"
-            defaultValue={item.title}
-            onKeyDown={handleEditKeyPress}
-            className="w-full px-2 py-2 border border-gray-200 rounded"
+            defaultValue={todo.text}
+            onKeyDown={handleEnterKeyPress}
+            className="flex flex-wrap w-full border border-gray-200  text-gray-800 rounded p-2 "
           />
-          <DeleteIcon className="ml-2 cursor-pointer" onClick={() => setIsEditing(false)} />
+          <DeleteIcon
+            className="cursor-pointer ml-2"
+            destroyTodo={() => setIsEditing(false)}
+          />
         </div>
       ) : (
-        <div className="flex items-center w-full">
-          <div className="flex items-center flex-grow">
+        <div className="flex flex-grow w-full items-center justify-between">
+          <div className="flex">
             <input
               type="checkbox"
-              checked={item.status}
-              onChange={() => toggleStatus(item.id)}
-              className=""
+              checked={todo.status}
+              onChange={() => toggleStatus(todo.id)}
             />
             <p
               className={`inline-block mt-1 ml-2 text-gray-600 ${
-                item.status ? "line-through" : ""
+                todo.status ? "line-through" : ""
               }`}
             >
-              {item.title}
+              {todo?.text}
             </p>
           </div>
-          <div className="absolute right-0 flex items-center space-x-1">
-            <EditIcon className="cursor-pointer" onClick={() => setIsEditing(true)} />
-            <DeleteIcon className="cursor-pointer" onClick={() => deleteTodo(item.id)} />
+          <div className="flex items-center">
+            <EditIcon
+              className="cursor-pointer ml-2"
+              modifyTodo={() => setIsEditing(true)}
+            />
+            <DeleteIcon
+              className="cursor-pointer ml-2"
+              destroyTodo={() => destroyTodo(todo.id)}
+            />
           </div>
         </div>
       )}
