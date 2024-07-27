@@ -37,7 +37,7 @@ function TodoItem({ todo }) {
         await apiRequest(
           `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
           "PUT",
-          { modifyText }
+          { text: modifyText }  // Corrected the payload key to "text"
         );
         todosDispatcher({
           type: "MODIFY_TODO",
