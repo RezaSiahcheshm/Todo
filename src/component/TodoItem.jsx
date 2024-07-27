@@ -9,38 +9,34 @@ export default function TodoItem({ todo }) {
   const { todosDispatcher } = useContext(TodosContext);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleEnterKeyPress = (event) => {
+  const modifyTodo = async (event) => {
     if (event.key === "Enter" && event.target.value.trim() !== "") {
-      modifyTodo(todo.id, event.target.value.trim());
-      setIsEditing(false);
-    }
-  };
-
-  const modifyTodo = async (id, text) => {
-    try {
-      const res = await fetch(
-        `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
-          body: JSON.stringify({ text }),
+      try {
+        const res = await fetch(
+          `https://669bc6cc276e45187d366d73.mockapi.io/todos/${todo.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-type": "application/json; charset=UTF-8",
+            },
+            body: JSON.stringify({ text: event.target.value.trim() }),
+          }
+        );
+        if (res.ok) {
+          todosDispatcher({
+            type: "MODIFY_TODO",
+            payload: { id: todo.id, text: event.target.value.trim() },
+          });
+          toast.success(`Todo id: ${todo.id} modified successfully`);
+          setIsEditing(false);
+        } else {
+          const error = await res.json();
+          toast.error(error.message);
         }
-      );
-      if (res.ok) {
-        todosDispatcher({
-          type: "MODIFY_TODO",
-          payload: { id, text },
-        });
-        toast.success(`Todo id: ${id} modified successfully`);
-      } else {
-        const error = await res.json();
-        toast.error(error.message);
+      } catch (e) {
+        console.log("Error", e);
+        toast.error("Failed to modify todo");
       }
-    } catch (e) {
-      console.log("Error", e);
-      toast.error("Failed to modify todo");
     }
   };
 
@@ -112,7 +108,7 @@ export default function TodoItem({ todo }) {
           <input
             type="text"
             defaultValue={todo.text}
-            onKeyDown={handleEnterKeyPress}
+            onKeyDown={modifyTodo}
             className="flex flex-wrap w-full border border-gray-200 text-gray-800 rounded p-2"
           />
           <DeleteIcon
