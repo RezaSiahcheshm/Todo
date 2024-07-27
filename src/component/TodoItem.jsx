@@ -6,13 +6,13 @@ import { TodosContext } from "../context/TodosContext";
 import { toast } from "react-toastify";
 
 export default function TodoItem({ todo }) {
+  const { id, text, completed } = todo;
   const { todosDispatcher } = useContext(TodosContext);
   const [isEditing, setIsEditing] = useState(false);
-  const { id ,completed} = todo;
 
   const modifyTodo = async (event) => {
-    const text = event.target.value.trim();
-    if (event.key === "Enter" && text !== "") {
+    const modifyText = event.target.value.trim();
+    if (event.key === "Enter" && modifyText !== "") {
       try {
         const res = await fetch(
           `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
@@ -21,13 +21,13 @@ export default function TodoItem({ todo }) {
             headers: {
               "Content-type": "application/json; charset=UTF-8",
             },
-            body: JSON.stringify({ text }),
+            body: JSON.stringify({ text: modifyText }),
           }
         );
         if (res.ok) {
           todosDispatcher({
             type: "MODIFY_TODO",
-            payload: { id, text },
+            payload: { id, text: modifyText },
           });
           toast.success(`Todo id: ${id} modified successfully`);
           setIsEditing(false);
@@ -57,9 +57,7 @@ export default function TodoItem({ todo }) {
       if (res.ok) {
         todosDispatcher({ type: "TOGGLE_COMPLETED", payload: id });
         toast.success(
-          `Todo id ${id} marked as ${
-            !completed ? "completed" : "uncompleted"
-          }`
+          `Todo id ${id} marked as ${!completed ? "completed" : "uncompleted"}`
         );
       } else {
         const error = await res.json();
@@ -99,7 +97,7 @@ export default function TodoItem({ todo }) {
         <div className="flex flex-grow w-full items-center justify-between">
           <input
             type="text"
-            defaultValue={todo.text}
+            defaultValue={text}
             onKeyDown={modifyTodo}
             className="flex flex-wrap w-full border border-gray-200 text-gray-800 rounded p-2"
           />
@@ -121,7 +119,7 @@ export default function TodoItem({ todo }) {
                 completed ? "line-through" : ""
               }`}
             >
-              {todo.text}
+              {text}
             </p>
           </div>
           <div className="flex items-center">
