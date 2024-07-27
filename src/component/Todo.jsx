@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useEffect, useReducer } from "react";
 import TodoItem from "./TodoItem";
 import { toast } from "react-toastify";
@@ -8,8 +7,8 @@ import { TodosContext } from "../context/TodosContext";
 export default function TodoApp() {
   const [todos, todosDispatcher] = useReducer(TodoReducer, []);
 
-  const addTodo = async (todo) => {
-    if (todo.key === "Enter" && todo.target.value.trim() !== "") {
+  const addTodo = async (event) => {
+    if (event.key === "Enter" && event.target.value.trim() !== "") {
       try {
         const res = await fetch(
           "https://669bc6cc276e45187d366d73.mockapi.io/todos",
@@ -19,22 +18,23 @@ export default function TodoApp() {
               "Content-type": "application/json; charset=UTF-8",
             },
             body: JSON.stringify({
-              text: todo.target.value,
+              text: event.target.value,
               completed: false,
             }),
           }
         );
         if (res.ok) {
           let data = await res.json();
-          todo.target.value = "";
+          event.target.value = "";
           todosDispatcher({
             type: "ADD_TODO",
             payload: data,
           });
           toast.success("Todo added successfully");
         }
-      } catch (e) {
-        console.log("Error", e);
+      } catch (error) {
+        console.log("Error", error);
+        toast.error('Failed to add todo');
       }
     }
   };
@@ -44,15 +44,16 @@ export default function TodoApp() {
       const res = await fetch(
         "https://669bc6cc276e45187d366d73.mockapi.io/todos"
       );
-      let data = await res.json();
       if (res.ok) {
+        const data = await res.json();
         todosDispatcher({
           type: "GET_TODOS",
           payload: data,
         });
       }
-    } catch (e) {
-      console.log("Error", e);
+    } catch (error) {
+      console.log("Error", error);
+      toast.error('Failed to fetch todos');
     }
   };
 
@@ -60,6 +61,7 @@ export default function TodoApp() {
     getTodosFromApi();
   }, []);
 
+  // Uncomment this useEffect if you want to persist todos to local storage
   // useEffect(() => {
   //   localStorage.setItem("todos", JSON.stringify(todos));
   // }, [todos]);
@@ -78,13 +80,13 @@ export default function TodoApp() {
             className="w-full px-2 py-3 border rounded outline-none border-grey-600"
           />
         </div>
-        <ul className="list-reset">
-          <TodosContext.Provider value={{ todosDispatcher }}>
+        <TodosContext.Provider value={{ todosDispatcher }}>
+          <ul className="list-reset">
             {todos.map((todo) => (
               <TodoItem key={todo.id} todo={todo} />
             ))}
-          </TodosContext.Provider>
-        </ul>
+          </ul>
+        </TodosContext.Provider>
       </div>
     </div>
   );

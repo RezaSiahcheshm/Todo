@@ -9,12 +9,9 @@ export default function TodoItem({ todo }) {
   const { todosDispatcher } = useContext(TodosContext);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handleEnterKeyPress = (modifiedTodo) => {
-    if (
-      modifiedTodo.key === "Enter" &&
-      modifiedTodo.target.value.trim() !== ""
-    ) {
-      modifyTodo(todo.id, modifiedTodo.target.value.trim());
+  const handleEnterKeyPress = (event) => {
+    if (event.key === "Enter" && event.target.value.trim() !== "") {
+      modifyTodo(todo.id, event.target.value.trim());
       setIsEditing(false);
     }
   };
@@ -36,15 +33,18 @@ export default function TodoItem({ todo }) {
           type: "MODIFY_TODO",
           payload: { id, text },
         });
-        toast.success(`Modify Todo id: ${id}`);
+        toast.success(`Todo id: ${id} modified successfully`);
+      } else {
+        const error = await res.json();
+        toast.error(error.message);
       }
-      toast.error(await res.json());
     } catch (e) {
       console.log("Error", e);
+      toast.error("Failed to modify todo");
     }
   };
 
-  const toggleCompleted = async (todo) => {
+  const toggleCompleted = async () => {
     try {
       const res = await fetch(
         `https://669bc6cc276e45187d366d73.mockapi.io/todos/${todo.id}`,
@@ -64,14 +64,17 @@ export default function TodoItem({ todo }) {
           payload: todo.id,
         });
         toast.success(
-          `todo id ${todo.id} change to  ${
-            todo.completed ? "completed" : "uncompleted"
+          `Todo id ${todo.id} marked as ${
+            !todo.completed ? "completed" : "uncompleted"
           }`
         );
+      } else {
+        const error = await res.json();
+        toast.error(error.message);
       }
-      toast.error(await res.json());
     } catch (e) {
       console.log("Error", e);
+      toast.error("Failed to toggle todo completion");
     }
   };
 
@@ -91,11 +94,14 @@ export default function TodoItem({ todo }) {
           type: "DELETE_TODO",
           payload: id,
         });
-        toast.success(`Delete Todo id: ${id}`);
+        toast.success(`Todo id: ${id} deleted successfully`);
+      } else {
+        const error = await res.json();
+        toast.error(error.message);
       }
-      toast.error(await res.json());
     } catch (e) {
       console.log("Error", e);
+      toast.error("Failed to delete todo");
     }
   };
 
@@ -107,7 +113,7 @@ export default function TodoItem({ todo }) {
             type="text"
             defaultValue={todo.text}
             onKeyDown={handleEnterKeyPress}
-            className="flex flex-wrap w-full border border-gray-200  text-gray-800 rounded p-2 "
+            className="flex flex-wrap w-full border border-gray-200 text-gray-800 rounded p-2"
           />
           <DeleteIcon
             className="cursor-pointer ml-2"
@@ -116,18 +122,18 @@ export default function TodoItem({ todo }) {
         </div>
       ) : (
         <div className="flex flex-grow w-full items-center justify-between">
-          <div className="flex">
+          <div className="flex items-center">
             <input
               type="checkbox"
               checked={todo.completed}
-              onChange={() => toggleCompleted(todo)}
+              onChange={toggleCompleted}
             />
             <p
               className={`inline-block mt-1 ml-2 text-gray-600 ${
                 todo.completed ? "line-through" : ""
               }`}
             >
-              {todo?.text}
+              {todo.text}
             </p>
           </div>
           <div className="flex items-center">
