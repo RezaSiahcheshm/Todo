@@ -6,7 +6,7 @@ import EditIcon from "../assets/EditIcon";
 export default function TodoItem({
   todo,
   destroyTodo,
-  toggleStatus,
+  toggleCompleted,
   modifyTodo,
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -41,12 +41,12 @@ export default function TodoItem({
           <div className="flex">
             <input
               type="checkbox"
-              checked={todo.status}
-              onChange={() => toggleStatus(todo.id)}
+              checked={todo.completed}
+              onChange={() => toggleCompleted(todo)}
             />
             <p
               className={`inline-block mt-1 ml-2 text-gray-600 ${
-                todo.status ? "line-through" : ""
+                todo.completed ? "line-through" : ""
               }`}
             >
               {todo?.text}
