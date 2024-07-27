@@ -1,14 +1,12 @@
 /* eslint-disable */
-import { useState } from "react";
+import { useContext, useState } from "react";
 import DeleteIcon from "../assets/DeleteIcon";
 import EditIcon from "../assets/EditIcon";
+import { TodosContext } from "../context/TodosContext";
+import { toast } from "react-toastify";
 
-export default function TodoItem({
-  todo,
-  destroyTodo,
-  toggleCompleted,
-  modifyTodo,
-}) {
+export default function TodoItem({ todo }) {
+  const { todosDispatcher } = useContext(TodosContext);
   const [isEditing, setIsEditing] = useState(false);
 
   const handleEnterKeyPress = (modifiedTodo) => {
@@ -18,6 +16,86 @@ export default function TodoItem({
     ) {
       modifyTodo(todo.id, modifiedTodo.target.value.trim());
       setIsEditing(false);
+    }
+  };
+
+  const modifyTodo = async (id, text) => {
+    try {
+      const res = await fetch(
+        `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+          body: JSON.stringify({ text }),
+        }
+      );
+      if (res.ok) {
+        todosDispatcher({
+          type: "MODIFY_TODO",
+          payload: { id, text },
+        });
+        toast.success(`Modify Todo id: ${id}`);
+      }
+      toast.error(await res.json());
+    } catch (e) {
+      console.log("Error", e);
+    }
+  };
+
+  const toggleCompleted = async (todo) => {
+    try {
+      const res = await fetch(
+        `https://669bc6cc276e45187d366d73.mockapi.io/todos/${todo.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+          body: JSON.stringify({
+            completed: !todo.completed,
+          }),
+        }
+      );
+      if (res.ok) {
+        todosDispatcher({
+          type: "TOGGLE_COMPLETED",
+          payload: todo.id,
+        });
+        toast.success(
+          `todo id ${todo.id} change to  ${
+            todo.completed ? "completed" : "uncompleted"
+          }`
+        );
+      }
+      toast.error(await res.json());
+    } catch (e) {
+      console.log("Error", e);
+    }
+  };
+
+  const destroyTodo = async (id) => {
+    try {
+      const res = await fetch(
+        `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+        }
+      );
+      if (res.ok) {
+        todosDispatcher({
+          type: "DELETE_TODO",
+          payload: id,
+        });
+        toast.success(`Delete Todo id: ${id}`);
+      }
+      toast.error(await res.json());
+    } catch (e) {
+      console.log("Error", e);
     }
   };
 
