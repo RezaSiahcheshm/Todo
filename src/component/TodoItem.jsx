@@ -8,26 +8,28 @@ import { toast } from "react-toastify";
 export default function TodoItem({ todo }) {
   const { todosDispatcher } = useContext(TodosContext);
   const [isEditing, setIsEditing] = useState(false);
+  const { id ,completed} = todo;
 
   const modifyTodo = async (event) => {
-    if (event.key === "Enter" && event.target.value.trim() !== "") {
+    const text = event.target.value.trim();
+    if (event.key === "Enter" && text !== "") {
       try {
         const res = await fetch(
-          `https://669bc6cc276e45187d366d73.mockapi.io/todos/${todo.id}`,
+          `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
           {
             method: "PUT",
             headers: {
               "Content-type": "application/json; charset=UTF-8",
             },
-            body: JSON.stringify({ text: event.target.value.trim() }),
+            body: JSON.stringify({ text }),
           }
         );
         if (res.ok) {
           todosDispatcher({
             type: "MODIFY_TODO",
-            payload: { id: todo.id, text: event.target.value.trim() },
+            payload: { id, text },
           });
-          toast.success(`Todo id: ${todo.id} modified successfully`);
+          toast.success(`Todo id: ${id} modified successfully`);
           setIsEditing(false);
         } else {
           const error = await res.json();
@@ -43,25 +45,20 @@ export default function TodoItem({ todo }) {
   const toggleCompleted = async () => {
     try {
       const res = await fetch(
-        `https://669bc6cc276e45187d366d73.mockapi.io/todos/${todo.id}`,
+        `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
         {
           method: "PUT",
           headers: {
             "Content-type": "application/json; charset=UTF-8",
           },
-          body: JSON.stringify({
-            completed: !todo.completed,
-          }),
+          body: JSON.stringify({ completed: !completed }),
         }
       );
       if (res.ok) {
-        todosDispatcher({
-          type: "TOGGLE_COMPLETED",
-          payload: todo.id,
-        });
+        todosDispatcher({ type: "TOGGLE_COMPLETED", payload: id });
         toast.success(
-          `Todo id ${todo.id} marked as ${
-            !todo.completed ? "completed" : "uncompleted"
+          `Todo id ${id} marked as ${
+            !completed ? "completed" : "uncompleted"
           }`
         );
       } else {
@@ -74,22 +71,17 @@ export default function TodoItem({ todo }) {
     }
   };
 
-  const destroyTodo = async (id) => {
+  const destroyTodo = async () => {
     try {
       const res = await fetch(
         `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
         {
           method: "DELETE",
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
+          headers: { "Content-type": "application/json; charset=UTF-8" },
         }
       );
       if (res.ok) {
-        todosDispatcher({
-          type: "DELETE_TODO",
-          payload: id,
-        });
+        todosDispatcher({ type: "DELETE_TODO", payload: id });
         toast.success(`Todo id: ${id} deleted successfully`);
       } else {
         const error = await res.json();
@@ -121,12 +113,12 @@ export default function TodoItem({ todo }) {
           <div className="flex items-center">
             <input
               type="checkbox"
-              checked={todo.completed}
+              checked={completed}
               onChange={toggleCompleted}
             />
             <p
               className={`inline-block mt-1 ml-2 text-gray-600 ${
-                todo.completed ? "line-through" : ""
+                completed ? "line-through" : ""
               }`}
             >
               {todo.text}
@@ -139,7 +131,7 @@ export default function TodoItem({ todo }) {
             />
             <DeleteIcon
               className="cursor-pointer ml-2"
-              destroyTodo={() => destroyTodo(todo.id)}
+              destroyTodo={() => destroyTodo(id)}
             />
           </div>
         </div>
