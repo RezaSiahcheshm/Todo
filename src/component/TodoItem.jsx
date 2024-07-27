@@ -4,90 +4,79 @@ import DeleteIcon from "../assets/DeleteIcon";
 import EditIcon from "../assets/EditIcon";
 import { TodosContext } from "../context/TodosContext";
 import { toast } from "react-toastify";
+import React from "react";
 
-export default function TodoItem({ todo }) {
+function TodoItem({ todo }) {
   const { id, text, completed } = todo;
   const { todosDispatcher } = useContext(TodosContext);
   const [isEditing, setIsEditing] = useState(false);
+
+  const apiRequest = async (url, method, body) => {
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json; charset=UTF-8" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        return await res.json();
+      } else {
+        const error = await res.json();
+        throw new Error(error.message);
+      }
+    } catch (e) {
+      toast.error(e.message || "Something went wrong");
+      throw e;
+    }
+  };
 
   const modifyTodo = async (event) => {
     const modifyText = event.target.value.trim();
     if (event.key === "Enter" && modifyText !== "") {
       try {
-        const res = await fetch(
+        await apiRequest(
           `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-type": "application/json; charset=UTF-8",
-            },
-            body: JSON.stringify({ text: modifyText }),
-          }
+          "PUT",
+          { modifyText }
         );
-        if (res.ok) {
-          todosDispatcher({
-            type: "MODIFY_TODO",
-            payload: { id, text: modifyText },
-          });
-          toast.success(`Todo id: ${id} modified successfully`);
-          setIsEditing(false);
-        } else {
-          const error = await res.json();
-          toast.error(error.message);
-        }
+        todosDispatcher({
+          type: "MODIFY_TODO",
+          payload: { id, text: modifyText },
+        });
+        toast.success(`Todo id: ${id} modified successfully`);
+        setIsEditing(false);
       } catch (e) {
         console.log("Error", e);
-        toast.error("Failed to modify todo");
       }
     }
   };
 
   const toggleCompleted = async () => {
     try {
-      const res = await fetch(
+      await apiRequest(
         `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
-          body: JSON.stringify({ completed: !completed }),
-        }
+        "PUT",
+        { completed: !completed }
       );
-      if (res.ok) {
-        todosDispatcher({ type: "TOGGLE_COMPLETED", payload: id });
-        toast.success(
-          `Todo id ${id} marked as ${!completed ? "completed" : "uncompleted"}`
-        );
-      } else {
-        const error = await res.json();
-        toast.error(error.message);
-      }
+      todosDispatcher({ type: "TOGGLE_COMPLETED", payload: id });
+      toast.success(
+        `Todo id ${id} marked as ${!completed ? "completed" : "uncompleted"}`
+      );
     } catch (e) {
       console.log("Error", e);
-      toast.error("Failed to toggle todo completion");
     }
   };
 
   const destroyTodo = async () => {
     try {
-      const res = await fetch(
+      await apiRequest(
         `https://669bc6cc276e45187d366d73.mockapi.io/todos/${id}`,
-        {
-          method: "DELETE",
-          headers: { "Content-type": "application/json; charset=UTF-8" },
-        }
+        "DELETE"
       );
-      if (res.ok) {
-        todosDispatcher({ type: "DELETE_TODO", payload: id });
-        toast.success(`Todo id: ${id} deleted successfully`);
-      } else {
-        const error = await res.json();
-        toast.error(error.message);
-      }
+      todosDispatcher({ type: "DELETE_TODO", payload: id });
+      toast.success(`Todo id: ${id} deleted successfully`);
     } catch (e) {
       console.log("Error", e);
-      toast.error("Failed to delete todo");
     }
   };
 
@@ -137,3 +126,5 @@ export default function TodoItem({ todo }) {
     </li>
   );
 }
+
+export default React.memo(TodoItem);
